@@ -20,20 +20,18 @@ const ActivityJoiningSetting = getUserSettingLazy("privacy", "activityJoiningRes
 // activityRestrictedGuildIds, activityJoiningRestrictedGuildIds, messageRequestRestrictedGuildIds
 const queue = new Queue();
 
-async function updateUserSetting(setting, settingToSetTo: boolean | undefined, guilds: string[]){
+function updateUserSetting(setting, settingToSetTo: boolean | undefined, guilds: string[]){
     if (settingToSetTo===undefined) return;
     const oldSetting = setting.getSetting();
     const newSet = new Set(oldSetting);
     if (settingToSetTo) {
-        for (const guildId of guilds)
-        {
+        for (const guildId of guilds) {
             newSet.delete(guildId);
             queue.push(setting.updateSetting([...newSet]));
         }
     }
     else {
-        for (const guildId of guilds)
-        {
+        for (const guildId of guilds) {
             newSet.add(guildId);
             queue.push(setting.updateSetting([...newSet]));
         }
@@ -70,6 +68,7 @@ function PrivacySettingsModal({ initialSettings, copySettings }:{ initialSetting
             <ToggleSwitch<PrivacySettings> settingsContainer={modalSettings} settingKey={"directMessages"} settingsChange={settingsChange}
                           title={"Direct Messages"}
                           note={<Forms.FormText>Allow direct messages from other members in this server.</Forms.FormText>}/>
+            {/* TODO: Disable Message Requests if Direct Messages are disabled */}
             <ToggleSwitch settingsContainer={modalSettings} settingKey={"messageRequests"} settingsChange={settingsChange}
                           title={"Message Requests"}
                           note={<Forms.FormText>If direct messages are enabled, filter messages from server members you may not know. <MaskedLink href={"https://support.discord.com/hc/en-gb/articles/7924992471191"}>Learn more about this setting here.</MaskedLink></Forms.FormText>}/>

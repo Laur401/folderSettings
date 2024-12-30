@@ -42,7 +42,7 @@ export function ToggleSwitch<T extends Settings>({ settingsContainer, settingKey
     return (
         <Flex flexDirection={"row"} style={{ gap: "0.5em" }}>
             <input type={"checkbox"}
-                   style={{ alignSelf: "flex-start", width: "16px", height: "16px" , minWidth: "16px"}}
+                   style={{ alignSelf: "flex-start", width: "16px", height: "16px" , minWidth: "16px" }}
                    onChange={v => settingsChange(settingKey, handleCheckboxChange(v.target.checked))}/>
             <Switch value={settingsContainer[settingKey] as unknown as boolean ?? false}
                     disabled={settingsContainer[settingKey] === undefined}
