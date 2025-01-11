@@ -36,6 +36,10 @@ async function submitSettings(folderId: string, settings: NotificationSettings){
     const guilds = getFolderGuilds(folderId);
     const settingsList = {
         muted: settings.muted,
+        mute_config: {
+            selected_time_window: settings.muted_selected_time_window,
+            end_time: settings.muted_end_time,
+        },
         message_notifications: settings.pings,
         suppress_everyone: settings.everyone,
         suppress_roles: settings.roles,
@@ -83,17 +87,32 @@ function NotificationSettingsModal({ initialSettings, copySettings }: { initialS
         newSettings[key] = value;
         // @ts-ignore
         copySettings[key] = value;
+        if (key==="muted_selected_time_window" && typeof value === "number") {
+            newSettings.muted_end_time=new Date(Date.now()+value*1000).toISOString();
+            copySettings.muted_end_time=newSettings.muted_end_time;
+        }
         setNotificationSettings(newSettings);
-        console.log(newSettings);
-        console.log(copySettings);
-        console.log(notificationSettings);
     };
     return(
         <>
             <div className={Margins.top20}/>
-            <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"muted"}
-                          note={<Forms.FormText>Muting a server prevents unread indicators and notifications from appearing unless you are mentioned.</Forms.FormText>}
-                          title={"Mute Server"}/>
+            <Forms.FormSection className={Margins.bottom20}>
+                <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"muted"} hideBorder={true}
+                              note={<Forms.FormText>Muting a server prevents unread indicators and notifications from appearing unless you are mentioned.</Forms.FormText>}
+                              title={"Mute Server"}/>
+                <ToggleSelect settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"muted_selected_time_window"}
+                              options={[
+                                  { label: "For 15 Minutes", value: 900 },
+                                  { label: "For 1 Hour", value: 3600 },
+                                  { label: "For 3 Hours", value: 10800 },
+                                  { label: "For 8 Hours", value: 28800 },
+                                  { label: "For 24 Hours", value: 86400 },
+                                  { label: "Until I turn it back on", value: -1, default: true },
+                              ]}
+                              placeholderValue={-1}
+                              title={"Mute duration"}/>
+                <Forms.FormDivider className={Margins.top20}/>
+            </Forms.FormSection>
             {/* TODO: Add Mute duration (handleSelectMuteTime), disable Server notif settings, highlights, mobile notifs */}
             <Forms.FormSection className={Margins.bottom20} title={"Server Notification Settings"}>
                 <ToggleSelect settingsContainer={notificationSettings} settingKey={"pings"} settingsChange={settingsChange}
@@ -102,33 +121,42 @@ function NotificationSettingsModal({ initialSettings, copySettings }: { initialS
                                   { label: "Only @Mentions", value: NotificationSettingsPingsValues.ONLY_MENTIONS },
                                   { label: "Nothing", value: NotificationSettingsPingsValues.NO_MESSAGES },
                                   { label: "Server Defaults", value: NotificationSettingsPingsValues.SERVER_DEFAULTS }
-                              ]} />
+                              ]}
+                              placeholderValue={NotificationSettingsPingsValues.DISABLED}/>
                 <Forms.FormDivider className={Margins.top20}/>
             </Forms.FormSection>
-            <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"everyone"}
-                          title={"Suppress @everyone and @here"}/>
-            <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"roles"}
-                          title={"Suppress All Role @mentions"}/>
-            <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"highlights"}
-                          note={<div>
-                              <Forms.FormText>Highlights provide occasional updates when your friends are chatting in busy servers and more.</Forms.FormText>
-                              <MaskedLink href={"https://support.discord.com/hc/en-gb/articles/5304469213079"}>Learn more about Highlights</MaskedLink>
-                          </div>}
-                          title={"Suppress Highlights"}/>
-            <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"events"}
-                          title={"Mute New Events"}/>
-            <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"mobile"}
-                          title={"Mobile Push Notifications"}/>
+            <Forms.FormSection className={Margins.bottom20}>
+                <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"everyone"} hideBorder={true}
+                              title={"Suppress @everyone and @here"}/>
+                <Forms.FormDivider/>
+            </Forms.FormSection>
+            <Forms.FormSection className={Margins.bottom20}>
+                <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"roles"} hideBorder={true}
+                              title={"Suppress All Role @mentions"}/>
+                <Forms.FormDivider/>
+            </Forms.FormSection>
+            <Forms.FormSection className={Margins.bottom20}>
+                <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"highlights"} hideBorder={true}
+                              note={<div>
+                                  <Forms.FormText>Highlights provide occasional updates when your friends are chatting in busy servers and more.</Forms.FormText>
+                                  <MaskedLink href={"https://support.discord.com/hc/en-gb/articles/5304469213079"}>Learn more about Highlights</MaskedLink>
+                              </div>}
+                              title={"Suppress Highlights"}/>
+                <Forms.FormDivider/>
+            </Forms.FormSection>
+            <Forms.FormSection className={Margins.bottom20}>
+                <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"events"} hideBorder={true}
+                              title={"Mute New Events"}/>
+                <Forms.FormDivider/>
+            </Forms.FormSection>
+            <Forms.FormSection className={Margins.bottom20}>
+                <ToggleSwitch settingsContainer={notificationSettings} settingsChange={settingsChange} settingKey={"mobile"} hideBorder={true}
+                              title={"Mobile Push Notifications"}/>
+                <Forms.FormDivider/>
+            </Forms.FormSection>
             <div className={Margins.bottom20}/>
         </>
     );
-}
-
-function Subtitle({ folderName }:{ folderName:string }){
-    if (folderName===undefined)
-        return null;
-    /* <Forms.FormTitle tag="h3" style={{marginBottom:0}}>{folderName}</Forms.FormTitle> */
-    return <Text variant="text-md/normal" >{folderName}</Text>;
 }
 
 export function buildNotificationMenuItem(folderId: string, folderName: string) {
@@ -154,7 +182,7 @@ export function buildNotificationMenuItem(folderId: string, folderName: string) 
                             <ModalHeader>
                                 <div style={{ flexGrow:1, flexShrink:1, flexBasis:0 }}>
                                     <Forms.FormTitle tag="h1" style={{ marginBottom:0 }}>Notification Settings</Forms.FormTitle>
-                                    <Subtitle folderName={folderName} />
+                                    { folderName&&<Text variant="text-md/normal" >{folderName}</Text> }
                                 </div>
                                 <ModalCloseButton onClick={modalProps.onClose} />
                             </ModalHeader>

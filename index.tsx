@@ -14,8 +14,7 @@ import definePlugin, { OptionType } from "@utils/types";
 
 import { buildNotificationMenuItem } from "./NotificationSettings";
 import { buildPrivacyMenuItem } from "./PrivacySettings";
-
-
+import {buildServerProfileMenuItem} from "./ServerProfile";
 
 const guildContextMenuPatch: NavContextMenuPatchCallback = (children, props) => {
     const { folderId, folderName } = props ?? {};
@@ -27,9 +26,10 @@ const guildContextMenuPatch: NavContextMenuPatchCallback = (children, props) => 
     const privacyMenuItem = (() => {
         return buildPrivacyMenuItem(folderId);
     })();
+    const serverProfileMenuItem = buildServerProfileMenuItem(folderId, folderName);
 
     if (notificationMenuItem)
-        findGroupChildrenByChildId("mark-folder-read", children)?.push(notificationMenuItem, privacyMenuItem);
+        findGroupChildrenByChildId("mark-folder-read", children)?.push(notificationMenuItem, privacyMenuItem, serverProfileMenuItem);
 };
 
 export const pluginSettings = definePluginSettings({
